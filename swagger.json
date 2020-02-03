@@ -2,11 +2,9 @@
   "swagger" : "2.0",
   "info" : {
     "description" : "API for customer self service front-end, allowing energy trading and other self-service activities. Early draft to enable a proof-of-concept. API authentification done using a HTTP Basic authentification with the user's credential, i.e. a username (e.g. user@domain.com) and a provided password. \n",
-    "version" : "0.1",
-    "title" : "PowerChain Main Backend"
+    "version" : "0.2",
+    "title" : "PowerChain Energy API Backend"
   },
-  "host" : "dev.powerchain-nordicenergy.io:8080",
-  "basePath" : "/",
   "tags" : [ {
     "name" : "producers",
     "description" : "Retrieve and select power producers"
@@ -14,13 +12,9 @@
     "name" : "user",
     "description" : "Operations about user"
   }, {
-    "name" : "tariffs",
-    "description" : "Retrieve energy tariffs available to a user"
-  }, {
-    "name" : "consumption",
-    "description" : "Retrieve customer's electricity consumption, if he has a smart reader"
+    "name" : "bills",
+    "description" : "Retrieve the customer's energy bills"
   } ],
-  "schemes" : [ "https", "http" ],
   "security" : [ {
     "http_basic_auth" : [ ]
   } ],
@@ -55,7 +49,6 @@
         "description" : "Array of producer objects returned",
         "operationId" : "findProducersDirect",
         "produces" : [ "application/json" ],
-        "parameters" : [ ],
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -79,7 +72,6 @@
         "description" : "Array of producer objects returned",
         "operationId" : "findProducersStrategy",
         "produces" : [ "application/json" ],
-        "parameters" : [ ],
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -145,6 +137,9 @@
         "responses" : {
           "200" : {
             "description" : "successful operation",
+            "schema" : {
+              "type" : "string"
+            },
             "headers" : {
               "X-Rate-Limit" : {
                 "type" : "integer",
@@ -156,9 +151,6 @@
                 "format" : "date-time",
                 "description" : "date in UTC when token expires"
               }
-            },
-            "schema" : {
-              "type" : "string"
             }
           },
           "400" : {
@@ -181,13 +173,12 @@
         }
       }
     },
-    "/user/get_customer_data" : {
+    "/user/data" : {
       "get" : {
         "tags" : [ "user" ],
         "summary" : "Get details for currently logged-in user",
         "operationId" : "getUserByName",
         "produces" : [ "application/json" ],
-        "parameters" : [ ],
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -198,61 +189,18 @@
         }
       }
     },
-    "/user/bills" : {
+    "/bill" : {
       "get" : {
-        "tags" : [ "user" ],
-        "summary" : "Return an array of all (typically monthly) bills are available for the given customer. Ordering is in descending order by date.",
+        "tags" : [ "bills" ],
+        "summary" : "Retrieve a list of the customers bills. Sorted in descending order",
         "operationId" : "getBills",
         "produces" : [ "application/json" ],
         "parameters" : [ {
-          "name" : "customerID",
-          "in" : "query",
-          "description" : "The customer for which bills are requested. If left empty returns bills of currently logged-in user. If provided, then the requester needs to provide a special API key used from the Watty App",
-          "required" : false,
-          "type" : "string"
-        }, {
           "name" : "limit",
           "in" : "query",
-          "description" : "Maximum number of bills to return. Unlimited if omitted.",
+          "description" : "The maximum number of bills to retrieve",
           "required" : false,
-          "type" : "integer"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "$ref" : "#/definitions/Bill"
-            }
-          }
-        }
-      }
-    },
-    "/tariffs/get" : {
-      "get" : {
-        "tags" : [ "tariffs" ],
-        "summary" : "Retrieve a list of offered energy tariffs based on user input",
-        "description" : "Array of tariff objects returned",
-        "operationId" : "findTariffs",
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "consumption",
-          "in" : "query",
-          "description" : "The consumption provided by the user in kWh",
-          "required" : true,
-          "type" : "integer"
-        }, {
-          "name" : "zip",
-          "in" : "query",
-          "description" : "The ZIP code provided by the user, e.g. 10629",
-          "required" : true,
-          "type" : "integer"
-        }, {
-          "name" : "powertype",
-          "in" : "query",
-          "description" : "The power type provided by the user, either 'electricity' or 'gas'",
-          "required" : false,
-          "type" : "string",
-          "enum" : [ "electricity", "gas" ]
+          "type" : "string"
         } ],
         "responses" : {
           "200" : {
@@ -260,7 +208,7 @@
             "schema" : {
               "type" : "array",
               "items" : {
-                "$ref" : "#/definitions/Tariff"
+                "$ref" : "#/definitions/Bill"
               }
             }
           },
@@ -270,55 +218,25 @@
         }
       }
     },
-    "/consumption/over_time" : {
+    "/bill/get/{billID}" : {
       "get" : {
-        "tags" : [ "consumption" ],
-        "summary" : "Retrieve total consumption per day",
-        "description" : "Output sum of recorded consumption in an array holding the consumption of every recorded day.",
-        "operationId" : "getConsumptionOverTime",
+        "tags" : [ "bills" ],
+        "summary" : "Retrieve a specific bill by ID",
+        "operationId" : "getSpecificBill",
         "produces" : [ "application/json" ],
         "parameters" : [ {
-          "name" : "customerID",
-          "in" : "query",
-          "description" : "Customer ID that is being queried (e-mail address?). Customer must have a flag that enables retrieval of his usage data through this interface for the provided partner. Example customer@name.com",
+          "name" : "billID",
+          "in" : "path",
+          "description" : "The ID of the bill to retrieve",
           "required" : true,
           "type" : "string"
-        }, {
-          "name" : "dateFrom",
-          "in" : "query",
-          "description" : "(Optional) Starting date limiting from when on to include data. Example 2017-07-01. For now, using the local time zone is fine.",
-          "required" : false,
-          "type" : "string",
-          "format" : "date-time"
-        }, {
-          "name" : "dateTo",
-          "in" : "query",
-          "description" : "(Optional) Ending date limiting until when on to include data. Example 2017-07-31",
-          "required" : false,
-          "type" : "string",
-          "format" : "date-time"
         } ],
         "responses" : {
           "200" : {
             "description" : "successful operation",
             "schema" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/definitions/Consumption"
-              }
+              "$ref" : "#/definitions/Bill"
             }
-          },
-          "400" : {
-            "description" : "API authentification failed"
-          },
-          "401" : {
-            "description" : "customerID not found"
-          },
-          "402" : {
-            "description" : "customerID found, but partner provided in API authentification does not have access rights to access customer"
-          },
-          "410" : {
-            "description" : "other error"
           }
         }
       }
@@ -330,7 +248,7 @@
     },
     "api_key" : {
       "type" : "apiKey",
-      "name" : "apiKey",
+      "name" : "api_key",
       "in" : "header"
     }
   },
@@ -360,7 +278,9 @@
         },
         "price" : {
           "type" : "integer",
-          "format" : "float"
+          "format" : "float",
+          "description" : "Price of power plant in Euros per kWh",
+          "example" : 0.27
         },
         "plant_type" : {
           "type" : "string",
@@ -375,17 +295,6 @@
           "type" : "boolean",
           "default" : false
         }
-      },
-      "example" : {
-        "price" : 6,
-        "name" : "John Doe",
-        "description" : "Green plant close to Vaasa run by a farmer, John Doe",
-        "trading_strategy" : false,
-        "id" : 0,
-        "complete" : false,
-        "plant_type" : "solar",
-        "picture" : "/plant_img/producer.jpg",
-        "capacity" : "600 MWh"
       }
     },
     "User" : {
@@ -404,30 +313,18 @@
         "email" : {
           "type" : "string"
         },
-        "current_producer_name" : {
-          "type" : "string",
-          "example" : "Producer"
+        "current_producer" : {
+          "type" : "object",
+          "$ref" : "#/definitions/Producer"
         },
-        "current_producer_picture" : {
-          "type" : "string",
-          "example" : "/plant_img/producer.jpg"
-        },
-        "last_bill_available" : {
-          "type" : "boolean",
-          "example" : true
-        },
-        "last_bill_amount" : {
-          "type" : "integer",
-          "format" : "float",
-          "example" : "35.24"
-        },
-        "last_bill_date" : {
-          "type" : "string",
-          "example" : "December;"
+        "last_bill" : {
+          "type" : "object",
+          "$ref" : "#/definitions/Bill"
         },
         "userStatus" : {
-          "type" : "string",
-          "description" : "User Status"
+          "type" : "integer",
+          "format" : "int32",
+          "description" : "User Status (e.g. not yet connected, etc.). Ignore for now."
         }
       }
     },
@@ -436,143 +333,73 @@
       "properties" : {
         "id" : {
           "type" : "integer",
-          "format" : "int32"
+          "format" : "int64"
+        },
+        "date_issued" : {
+          "type" : "string",
+          "format" : "date",
+          "description" : "Date when the bill was issued"
+        },
+        "date" : {
+          "type" : "string",
+          "description" : "Textual representation of the billing period",
+          "example" : "December"
+        },
+        "billing_period_start" : {
+          "type" : "string",
+          "format" : "date",
+          "description" : "Date when the billing period started"
+        },
+        "billing_period_end" : {
+          "type" : "string",
+          "format" : "date",
+          "description" : "Date when the billing period ended"
         },
         "amount" : {
           "type" : "integer",
           "format" : "float",
-          "example" : "35.24",
-          "description" : "Total amount of bill in Euros"
+          "description" : "Overall bill amount in Euros",
+          "example" : 35.24
+        },
+        "amount_fix" : {
+          "type" : "integer",
+          "format" : "float",
+          "description" : "Fixed bill amount (Base price) in Euro",
+          "example" : 9.9
+        },
+        "amount_variable" : {
+          "type" : "integer",
+          "format" : "float",
+          "description" : "Variable energy price (Working price) in Euro per kWh",
+          "example" : 0.27
         },
         "consumption" : {
           "type" : "integer",
-          "format" : "int32",
-          "example" : "264.22",
-          "description" : "Amount of kWh consumed in billing period"
+          "format" : "float",
+          "description" : "Consumption in billing period in kWh",
+          "example" : 542.2
         },
-        "date" : {
+        "breakdown_by_appliance" : {
           "type" : "string",
-          "example" : "December",
-          "description" : "Textual representation of Date, typically a month"
+          "description" : "FOR LATER STAGE, Object holding the invidual appliances and their consumption"
         },
-        "date_start" : {
+        "breakdown_by_producer" : {
           "type" : "string",
-          "format" : "date",
-          "example" : "2017-12-01"
-        },
-        "date_end" : {
-          "type" : "string",
-          "format" : "date",
-          "example" : "2017-12-31"
-        },
-        "tariff" : {
-          "$ref" : "#/definitions/Tariff"
-        },
-        "tariff_options" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/Tariff_Option_with_time"
-          }
+          "description" : "FOR LATER STAGE, Object holding the individual power plants the customer chance and how much they covered his consumption"
         },
         "link_to_pdf" : {
           "type" : "string",
-          "example" : "/bills/download/bill12312312.pdf"
-        }
-      }
-    },
-    "Tariff" : {
-      "type" : "object",
-      "properties" : {
-        "id" : {
-          "type" : "string",
-          "example" : "DIRECT_CURRENT_YEAR1"
-        },
-        "name" : {
-          "type" : "string",
-          "example" : "PowerChain Direct Current"
-        },
-        "price_var" : {
-          "type" : "integer",
-          "format" : "float",
-          "example" : "21.00",
-          "description" : "Additional charge in ct. per kWh. Excl. VAT"
-        },
-        "price_fix" : {
-          "type" : "integer",
-          "format" : "float",
-          "example" : "10.50",
-          "description" : "Additional charge in EUR per month. Excl. VAT"
-        }
-      }
-    },
-    "Tariff_Option_with_time" : {
-      "type" : "object",
-      "properties" : {
-        "Tariff_Option" : {
-          "$ref" : "#/definitions/Tariff_Option_with_time_Tariff_Option"
-        },
-        "date_start" : {
-          "type" : "string",
-          "format" : "date",
-          "example" : "2017-12-01"
-        },
-        "date_end" : {
-          "type" : "string",
-          "format" : "date",
-          "example" : "2017-12-31"
-        },
-        "price_var" : {
-          "type" : "integer",
-          "format" : "float",
-          "example" : "1.00",
-          "description" : "Additional charge in ct. per kWh for this option. Excl. VAT"
-        },
-        "price_fix" : {
-          "type" : "integer",
-          "format" : "float",
-          "example" : "0.00",
-          "description" : "Additional charge in EUR per month for this option. Excl. VAT"
-        }
-      }
-    },
-    "Consumption" : {
-      "type" : "object",
-      "properties" : {
-        "day" : {
-          "type" : "string",
-          "format" : "date",
-          "example" : "2017-07-01",
-          "description" : "The day for which the consumption was recorded"
-        },
-        "consumption" : {
-          "type" : "integer",
-          "format" : "float",
-          "example" : "248.8",
-          "description" : "Consumption in kWh"
-        },
-        "uptime" : {
-          "type" : "number",
-          "format" : "float",
-          "example" : 100.0,
-          "description" : "If the recording is incomplete, e.g. due to network issues, this describes the percentage of time the data is available. Will be used to scale to estimate monthly billing volume"
-        }
-      }
-    },
-    "Tariff_Option_with_time_Tariff_Option" : {
-      "type" : "object",
-      "properties" : {
-        "id" : {
-          "type" : "integer"
-        },
-        "name" : {
-          "type" : "string",
-          "example" : "Windturbine Road"
+          "description" : "URL suffix on webserver where full bill in PDF format is stored",
+          "example" : "/bill_123482329.pdf"
         }
       }
     }
   },
   "externalDocs" : {
-    "description" : "Find out more about Nordic Energy´s PowerChain",
+    "description" : "Find out more about Digital Energy",
     "url" : "https://powerchain.nordicenergy.io"
-  }
+  },
+  "schemes" : [ "https", "http" ],
+  "host" : "dev.nordicenergy.io:8000",
+  "basePath" : "/api"
 }
