@@ -1,5 +1,5 @@
 
-# Swagger JSON and YANL
+# Swagger JSON and YAML
 This is a swagger JSON built by the [swagger-codegen](https://github.com/swagger-api/swagger-codegen) projects.
 
 
