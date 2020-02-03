@@ -1,0 +1,618 @@
+h1. PowerChain Main Backend API for customer self service front-end, allowing energy trading and other self-service activities. Early draft to enable a proof-of-concept. API authentification done using a HTTP Basic authentification with the user's credential, i.e. a username (e.g. user@domain.com) and a provided password.  
+
+*Version:* 0.1
+
+----
+
+{toc:printable=true|style=square|minLevel=2|maxLevel=3|type=list|outline=false|include=.*}
+
+h2. Endpoints
+
+    h3. getConsumptionOverTime
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /consumption/over_time
+    {code}
+    *Summary:* Retrieve total consumption per day
+    *Description:* Output sum of recorded consumption in an array holding the consumption of every recorded day.
+
+
+    h4. Parameters
+
+
+
+        h5. Query Parameters
+        ||Name||Description||Required||Default||Pattern||
+        |customerID |Customer ID that is being queried (e-mail address?). Customer must have a flag that enables retrieval of his usage data through this interface for the provided partner. Example customer@name.com |(/) | |  |
+
+|dateFrom |(Optional) Starting date limiting from when on to include data. Example 2017-07-01. For now, using the local time zone is fine. |(x) | |  |
+
+|dateTo |(Optional) Ending date limiting until when on to include data. Example 2017-07-31 |(x) | |  |
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+array[Consumption]
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "schema" : {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/definitions/Consumption"
+    }
+  }
+}
+        {code}
+        *Status Code:* 400
+        *Message:*     API authentification failed
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "API authentification failed"
+}
+        {code}
+        *Status Code:* 401
+        *Message:*     customerID not found
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "customerID not found"
+}
+        {code}
+        *Status Code:* 402
+        *Message:*     customerID found, but partner provided in API authentification does not have access rights to access customer
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "customerID found, but partner provided in API authentification does not have access rights to access customer"
+}
+        {code}
+        *Status Code:* 410
+        *Message:*     other error
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "other error"
+}
+        {code}
+    ----
+
+    h3. addProducer
+    {status:colour=Yellow|title=post|subtle=false}
+    {code}
+    post /producers/select
+    {code}
+    *Summary:* Select a producer to purchase power from
+    *Description:* 
+
+
+    h4. Parameters
+
+        h5. Body Parameter
+        ||Name||Description||Required||Default||Pattern||
+        |producerId |ID of producer that the customer selected |(/) | |  |
+
+
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 405
+        *Message:*     Invalid input
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "Invalid input"
+}
+        {code}
+    ----
+
+    h3. findProducer
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /producers/get/{producerID}
+    {code}
+    *Summary:* Retrieve a a specific power producer by his producerID
+    *Description:* Sing instance of producer object returned
+
+
+    h4. Parameters
+        h5. Path Parameters
+        ||Name||Description||Required||Default||Pattern||
+        |producerID |The ID of the producer to retrieve |(/) | |  |
+
+
+
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+Producer
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "schema" : {
+    "$ref" : "#/definitions/Producer"
+  }
+}
+        {code}
+        *Status Code:* 400
+        *Message:*     Invalid producer ID
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "Invalid producer ID"
+}
+        {code}
+    ----
+
+    h3. findProducersDirect
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /producers/direct
+    {code}
+    *Summary:* Retrieve a list of available individual power producers
+    *Description:* Array of producer objects returned
+
+
+    h4. Parameters
+
+
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+array[Producer]
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "schema" : {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/definitions/Producer"
+    }
+  }
+}
+        {code}
+        *Status Code:* 400
+        *Message:*     Generic error
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "Generic error"
+}
+        {code}
+    ----
+
+    h3. findProducersStrategy
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /producers/strategies
+    {code}
+    *Summary:* Retrieve a list of available power strategies, e.g. to always buy the cheapest wind producer
+    *Description:* Array of producer objects returned
+
+
+    h4. Parameters
+
+
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+array[Producer]
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "schema" : {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/definitions/Producer"
+    }
+  }
+}
+        {code}
+        *Status Code:* 400
+        *Message:*     Generic error
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "Generic error"
+}
+        {code}
+    ----
+
+    h3. findTariffs
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /tariffs/get
+    {code}
+    *Summary:* Retrieve a list of offered energy tariffs based on user input
+    *Description:* Array of tariff objects returned
+
+
+    h4. Parameters
+
+
+
+        h5. Query Parameters
+        ||Name||Description||Required||Default||Pattern||
+        |consumption |The consumption provided by the user in kWh |(/) | |  |
+
+|zip |The ZIP code provided by the user, e.g. 10629 |(/) | |  |
+
+|powertype |The power type provided by the user, either &#39;electricity&#39; or &#39;gas&#39; |(x) | |  |
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+array[Tariff]
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "schema" : {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/definitions/Tariff"
+    }
+  }
+}
+        {code}
+        *Status Code:* 400
+        *Message:*     Generic error
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "Generic error"
+}
+        {code}
+    ----
+
+    h3. getBills
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /user/bills
+    {code}
+    *Summary:* Return an array of all (typically monthly) bills are available for the given customer. Ordering is in descending order by date.
+    *Description:* 
+
+
+    h4. Parameters
+
+
+
+        h5. Query Parameters
+        ||Name||Description||Required||Default||Pattern||
+        |customerID |The customer for which bills are requested. If left empty returns bills of currently logged-in user. If provided, then the requester needs to provide a special API key used from the Watty App |(x) | |  |
+
+|limit |Maximum number of bills to return. Unlimited if omitted. |(x) | |  |
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+Bill
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "schema" : {
+    "$ref" : "#/definitions/Bill"
+  }
+}
+        {code}
+    ----
+
+    h3. getUserByName
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /user/get_customer_data
+    {code}
+    *Summary:* Get details for currently logged-in user
+    *Description:* 
+
+
+    h4. Parameters
+
+
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+User
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "schema" : {
+    "$ref" : "#/definitions/User"
+  }
+}
+        {code}
+    ----
+
+    h3. loginUser
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /user/login
+    {code}
+    *Summary:* Logs user into the system
+    *Description:* 
+
+
+    h4. Parameters
+
+
+
+        h5. Query Parameters
+        ||Name||Description||Required||Default||Pattern||
+        |username |The user name for login |(/) | |  |
+
+|password |The password for login in clear text |(/) | |  |
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 200
+        *Message:*     successful operation
+        {code:title=Response Type}
+String
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation",
+  "headers" : {
+    "X-Rate-Limit" : {
+      "type" : "integer",
+      "format" : "int32",
+      "description" : "calls per hour allowed by the user"
+    },
+    "X-Expires-After" : {
+      "type" : "string",
+      "format" : "date-time",
+      "description" : "date in UTC when token expires"
+    }
+  },
+  "schema" : {
+    "type" : "string"
+  }
+}
+        {code}
+        *Status Code:* 400
+        *Message:*     Invalid username/password supplied
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "Invalid username/password supplied"
+}
+        {code}
+    ----
+
+    h3. logoutUser
+    {status:colour=Yellow|title=get|subtle=false}
+    {code}
+    get /user/logout
+    {code}
+    *Summary:* Logs out current logged in user session
+    *Description:* 
+
+
+    h4. Parameters
+
+
+
+
+
+
+
+    h4. Responses
+        *Status Code:* 0
+        *Message:*     successful operation
+        {code:title=Response Type}
+
+        {code}
+        See [#models]
+
+
+
+        {code:title=Response Schema |collapse=true}
+{
+  "description" : "successful operation"
+}
+        {code}
+    ----
+
+h2. Models
+
+        h3. Bill
+        ||Field Name||Required||Type||Description||
+         |id | |Integer | |
+ |amount | |Integer |Total amount of bill in Euros |
+ |consumption | |Integer |Amount of kWh consumed in billing period |
+ |date | |String |Textual representation of Date, typically a month |
+ |date_start | |date | |
+ |date_end | |date | |
+ |tariff | |Tariff | |
+ |tariff_options | |array[Tariff_Option_with_time] | |
+ |link_to_pdf | |String | |
+        h3. Consumption
+        ||Field Name||Required||Type||Description||
+         |day | |date |The day for which the consumption was recorded |
+ |consumption | |Integer |Consumption in kWh |
+ |uptime | |Float |If the recording is incomplete, e.g. due to network issues, this describes the percentage of time the data is available. Will be used to scale to estimate monthly billing volume |
+        h3. Producer
+        ||Field Name||Required||Type||Description||
+         |id | |Long | |
+ |name | |String | |
+ |picture | |String | |
+ |description | |String | |
+ |capacity | |String | |
+ |price | |Integer | |
+ |plant_type | |String |Type of producer |
+ |trading_strategy | |Boolean | |
+ |complete | |Boolean | |
+        h3. Tariff
+        ||Field Name||Required||Type||Description||
+         |id | |String | |
+ |name | |String | |
+ |price_var | |Integer |Additional charge in ct. per kWh. Excl. VAT |
+ |price_fix | |Integer |Additional charge in EUR per month. Excl. VAT |
+        h3. Tariff_Option_with_time
+        ||Field Name||Required||Type||Description||
+         |Tariff_Option | |Tariff_Option_with_time_Tariff_Option | |
+ |date_start | |date | |
+ |date_end | |date | |
+ |price_var | |Integer |Additional charge in ct. per kWh for this option. Excl. VAT |
+ |price_fix | |Integer |Additional charge in EUR per month for this option. Excl. VAT |
+        h3. Tariff_Option_with_time_Tariff_Option
+        ||Field Name||Required||Type||Description||
+         |id | |Integer | |
+ |name | |String | |
+        h3. User
+        ||Field Name||Required||Type||Description||
+         |id | |Long | |
+ |firstName | |String | |
+ |lastName | |String | |
+ |email | |String | |
+ |current_producer_name | |String | |
+ |current_producer_picture | |String | |
+ |last_bill_available | |Boolean | |
+ |last_bill_amount | |Integer | |
+ |last_bill_date | |String | |
+ |userStatus | |String |User Status |
