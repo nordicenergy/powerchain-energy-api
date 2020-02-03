@@ -7,7 +7,7 @@ info:
     \ i.e. a username (e.g. user@domain.com) and a provided password. \n"
   version: "0.1"
   title: "PowerChain Main Backend"
-host: "dev.powerchhain-nordicenergy.io:8080"
+host: "dev.powerchain-nordicenergy.io:8080"
 basePath: "/"
 tags:
 - name: "producers"
