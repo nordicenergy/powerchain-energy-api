@@ -1,5 +1,5 @@
 {
-  "swagger" : "3.0",
+  "swagger" : "2.0",
   "info" : {
     "description" : "API for customer self service front-end, allowing energy trading and other self-service activities. Early draft to enable a proof-of-concept. API authentification done using a HTTP Basic authentification with the user's credential, i.e. a username (e.g. user@domain.com) and a provided password. \n",
     "version" : "0.2",
