@@ -1,9 +1,9 @@
 {
-  "swagger" : "2.0",
+  "swagger" : "3.0",
   "info" : {
     "description" : "API for customer self service front-end, allowing energy trading and other self-service activities. Early draft to enable a proof-of-concept. API authentification done using a HTTP Basic authentification with the user's credential, i.e. a username (e.g. user@domain.com) and a provided password. \n",
     "version" : "0.2",
-    "title" : "PowerChain Energy API Backend"
+    "title" : "Nordic Energy - Digital Energy API Backend"
   },
   "tags" : [ {
     "name" : "producers",
@@ -270,7 +270,7 @@
         },
         "description" : {
           "type" : "string",
-          "example" : "Green plant close to Vaasa run by a farmer, John Doe"
+          "example" : "Green plant close to Hamburg run by a farmer, John Doe"
         },
         "capacity" : {
           "type" : "string",
@@ -397,9 +397,9 @@
   },
   "externalDocs" : {
     "description" : "Find out more about Digital Energy",
-    "url" : "https://powerchain.nordicenergy.io"
+    "url" : "http://digitalenergy.de"
   },
   "schemes" : [ "https", "http" ],
-  "host" : "dev.nordicenergy.io:8000",
+  "host" : "dev.nordicenergy.co:8000",
   "basePath" : "/api"
 }
